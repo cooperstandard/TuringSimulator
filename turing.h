@@ -4,6 +4,7 @@
 
 /** Structures **/
 
+typedef enum {LEFT, STAY, RIGHT} direction;
 
 // The 'tape' is a doubly linked list of cell structures.
 typedef struct _cell {
@@ -13,12 +14,13 @@ typedef struct _cell {
 } cell;
 
 
+
 // TODO: figure out how to represent an instruction properly
 typedef struct _instruction {
     int state;
     uint8_t read;
     uint8_t write;
-    enum {LEFT, STAY, RIGHT} direction;
+    direction d;
     int nextState;
     /* NOTES:
       - state does not need to be unique but for within a group of instructions of the same state the value in read needs to be unique
@@ -38,8 +40,8 @@ typedef struct _instruction {
 
 
 
-typedef struct {
-    cell* cursor;
+typedef struct _TM{
+    cell* current;
     int state;
 
 } TM;
@@ -50,6 +52,8 @@ typedef struct {
 
 // allowing to fill the tape with data before running because any finite start state could be setup by a sequence of chaining rules that terminate at the initial position
 cell* setupTape(int length, uint8_t* setup);
+
+void simulate(TM cursor, instruction** stateTable, int opLimit);
 
 // allocates memory and sets value to 0 and appropiate relationship to parameter cell.
 void addPrevious(cell* successor);
@@ -72,5 +76,9 @@ instruction* newInstructionTable(int numSymbols);
 
 void freeStateTable(instruction** stateTable, int numStates);
 
-void simulate(TM cursor, instruction** stateTable, int opLimit);
+void setInstruction(instruction* row, int state, uint8_t read, uint8_t write, direction d, int next);
+
+instruction** bitFlipTable();
+
+
 

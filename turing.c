@@ -5,7 +5,7 @@ int main(int argc, char** argv) {
     // second arg is length of initial tape
     // 3rd-n arrgs are the initial tape setup
     // if there is only one arg, or the second arg is 0, the tape is setup to have 3 allocated cells containing 0;
-    int maxOps = 100;
+    int maxOps = 10;
     uint8_t* setup;
     int length = 3;
     if (argc == 1) {
@@ -34,16 +34,58 @@ int main(int argc, char** argv) {
 
     cell* tape = setupTape(length, setup);
     free(setup);
-    showTape(tape);
     TM cursor = {tape, 0};
 
+    instruction**stateTable = bitFlipTable();
 
-    free(tape);
+    //Setting up the state and instruction tables
+    
+
+
+    simulate(cursor, stateTable, maxOps);
+    freeTape(tape);
+    freeStateTable(stateTable, 2);
 
 
 }
-// TODO:
-void simulate(TM cursor, instruction** stateTable, int opLimit);
+
+
+//TODO: need to mark terminal state somehow
+void simulate(TM cursor, instruction** stateTable, int opLimit) {
+    // if verbose is 1 show tape after each iteration, if 0 only show the unmodified and the final tape
+    int stepNum = 0;
+    printf("Original Tape: ");
+    showTape(cursor.current);
+    while(stepNum < opLimit) {
+        //TODO: do things here
+        instruction operation = stateTable[cursor.state][cursor.current->value];
+        cursor.current->value = operation.write;
+        cursor.state = operation.nextState;
+        if (cursor.current->next == NULL) {
+            addNext(cursor.current);
+        }
+        cursor.current = cursor.current->next;
+
+        /*
+        switch(operation.d) {
+            case (LEFT):
+                cursor.current = moveLeft(cursor.current);
+                break;
+            case (RIGHT):
+                cursor.current = moveRight(cursor.current);
+                break;
+            default:
+                break;
+        }
+        */
+        
+        stepNum++;
+    }
+
+    printf("Final Tape:    ");
+    showTape(cursor.current);
+
+}
 
 
 cell* setupTape(int length, uint8_t* setup) {
@@ -67,12 +109,16 @@ cell* setupTape(int length, uint8_t* setup) {
 
 
 void showTape(cell* start) {
-    if (start->next == NULL) {
-        printf("%u\n", start->value);
-    } else {
-        printf("%u ", start->value);
-        showTape(start->next);
+    while(start->prev != NULL) {
+        start = start->prev;
     }
+    printf("...");
+
+    while (start->next != NULL) {
+        printf("%u ", start->value);
+        start = start->next;
+    }
+    printf("%u...\n", start->value);
 }
 
 
@@ -139,6 +185,32 @@ void freeStateTable(instruction** stateTable, int numStates) {
     free(stateTable);
 }
 
+void setInstruction(instruction* row, int state, uint8_t read, uint8_t write, direction d, int next) {
+    row->state = state;
+    row->nextState = next;
+    row->read = read;
+    row->write = write;
+    row->d = d;
 
+}
+
+
+// Programs
+
+instruction** bitFlipTable() {
+
+    instruction** stateTable = newStateTable(2);
+
+    stateTable[0] = newInstructionTable(2);
+    setInstruction(&(stateTable[0][0]), 0, 0, 1, RIGHT, 0);
+    setInstruction(&(stateTable[0][1]), 0, 1, 0, RIGHT, 0);
+
+    stateTable[1] = newInstructionTable(2);
+    setInstruction(&(stateTable[1][0]), 1, 0, 0, STAY, 1);
+    setInstruction(&(stateTable[1][1]), 1, 1, 1, STAY, 1);
+
+    return stateTable;
+
+}
 
 
