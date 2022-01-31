@@ -36,9 +36,13 @@ int main(int argc, char** argv) {
     free(setup);
     TM cursor = {tape, 0};
 
-    instruction**stateTable = bitFlipTable();
+    //Setting up the program in a statetable
+    instruction** stateTable;
+    //stateTable = bitFlipInstructions();
+    stateTable = incrementInstructions();
 
-    //Setting up the state and instruction tables
+
+    
     
 
 
@@ -50,14 +54,11 @@ int main(int argc, char** argv) {
 }
 
 
-//TODO: need to mark terminal state somehow
 void simulate(TM cursor, instruction** stateTable, int opLimit) {
-    // if verbose is 1 show tape after each iteration, if 0 only show the unmodified and the final tape
     int stepNum = 0;
     printf("Original Tape: ");
     showTape(cursor.current);
     while(stepNum < opLimit) {
-        //TODO: do things here
         instruction operation = stateTable[cursor.state][cursor.current->value];
         cursor.current->value = operation.write;
         cursor.state = operation.nextState;
@@ -69,6 +70,9 @@ void simulate(TM cursor, instruction** stateTable, int opLimit) {
             case (RIGHT):
                 cursor.current = moveRight(cursor.current);
                 break;
+            case (HALT):
+                stepNum = opLimit + 1;
+                break;
             default:
                 break;
         }
@@ -79,6 +83,9 @@ void simulate(TM cursor, instruction** stateTable, int opLimit) {
 
     printf("Final Tape:    ");
     showTape(cursor.current);
+    if(stepNum == opLimit) {
+        printf("The program did not halt before reaching the input operation limit.\n");
+    }
 
 }
 
@@ -190,7 +197,7 @@ void setInstruction(instruction* row, uint8_t write, direction d, int next) {
 
 // Programs
 
-instruction** bitFlipTable() {
+instruction** bitFlipInstructions() {
 
     instruction** stateTable = newStateTable(2);
 
@@ -199,11 +206,24 @@ instruction** bitFlipTable() {
     setInstruction(&(stateTable[0][1]), 0, RIGHT, 0);
 
     stateTable[1] = newInstructionTable(2);
-    setInstruction(&(stateTable[1][0]), 0, STAY, 1);
-    setInstruction(&(stateTable[1][1]), 1, STAY, 1);
+    setInstruction(&(stateTable[1][0]), 0, HALT, 1);
+    setInstruction(&(stateTable[1][1]), 1, HALT, 1);
 
     return stateTable;
 
 }
 
 
+instruction** incrementInstructions() {
+
+    instruction** stateTable = newStateTable(1);
+
+    stateTable[0] = newInstructionTable(2);
+    setInstruction(&(stateTable[0][0]), 1, HALT, 0);
+    setInstruction(&(stateTable[0][1]), 1, RIGHT, 0);
+
+    return stateTable;
+
+}
+
+// TODO: busy beaver

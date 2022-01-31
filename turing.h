@@ -4,7 +4,7 @@
 
 /** Type Definitions **/
 
-typedef enum {LEFT, STAY, RIGHT} direction;
+typedef enum {LEFT, STAY, RIGHT, HALT} direction;
 
 // The 'tape' is a doubly linked list of cell structures.
 // Each cell stores a value and pointers to its right and left neighbors (next and prev)
@@ -78,7 +78,9 @@ void setInstruction(instruction* row, uint8_t write, direction d, int next);
 
 
 // Programs (see implementation for details)
-instruction** bitFlipTable();
+instruction** bitFlipInstructions();
+
+instruction** incrementInstructions();
 
 
 
