@@ -3,7 +3,7 @@
 int main(int argc, char** argv) {
     // first arg is operation limit.
     // second arg is length of initial tape
-    // 3rd-n arrgs are the initial tape setup
+    // 3rd-n args are the initial tape setup
     // if there is only one arg, or the second arg is 0, the tape is setup to have 3 allocated cells containing 0;
     int maxOps = 10;
     uint8_t* setup;
@@ -61,12 +61,7 @@ void simulate(TM cursor, instruction** stateTable, int opLimit) {
         instruction operation = stateTable[cursor.state][cursor.current->value];
         cursor.current->value = operation.write;
         cursor.state = operation.nextState;
-        if (cursor.current->next == NULL) {
-            addNext(cursor.current);
-        }
-        cursor.current = cursor.current->next;
 
-        /*
         switch(operation.d) {
             case (LEFT):
                 cursor.current = moveLeft(cursor.current);
@@ -77,7 +72,7 @@ void simulate(TM cursor, instruction** stateTable, int opLimit) {
             default:
                 break;
         }
-        */
+        
         
         stepNum++;
     }
@@ -185,10 +180,8 @@ void freeStateTable(instruction** stateTable, int numStates) {
     free(stateTable);
 }
 
-void setInstruction(instruction* row, int state, uint8_t read, uint8_t write, direction d, int next) {
-    row->state = state;
+void setInstruction(instruction* row, uint8_t write, direction d, int next) {
     row->nextState = next;
-    row->read = read;
     row->write = write;
     row->d = d;
 
@@ -202,12 +195,12 @@ instruction** bitFlipTable() {
     instruction** stateTable = newStateTable(2);
 
     stateTable[0] = newInstructionTable(2);
-    setInstruction(&(stateTable[0][0]), 0, 0, 1, RIGHT, 0);
-    setInstruction(&(stateTable[0][1]), 0, 1, 0, RIGHT, 0);
+    setInstruction(&(stateTable[0][0]), 1, RIGHT, 0);
+    setInstruction(&(stateTable[0][1]), 0, RIGHT, 0);
 
     stateTable[1] = newInstructionTable(2);
-    setInstruction(&(stateTable[1][0]), 1, 0, 0, STAY, 1);
-    setInstruction(&(stateTable[1][1]), 1, 1, 1, STAY, 1);
+    setInstruction(&(stateTable[1][0]), 0, STAY, 1);
+    setInstruction(&(stateTable[1][1]), 1, STAY, 1);
 
     return stateTable;
 
