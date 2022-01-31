@@ -1,5 +1,4 @@
 #include "turing.h"
-#include "programs.c"
 
 int main(int argc, char** argv) {
     // first arg is operation limit.
@@ -36,10 +35,15 @@ int main(int argc, char** argv) {
     cell* tape = setupTape(length, setup);
     free(setup);
     showTape(tape);
+    TM cursor = {tape, 0};
+
+
     free(tape);
 
 
 }
+// TODO:
+void simulate(TM cursor, instruction** stateTable, int opLimit);
 
 
 cell* setupTape(int length, uint8_t* setup) {
@@ -88,24 +92,53 @@ void freeTape(cell* start) {
 }
 
 
-cell* addPrevious(cell* successor) {
+void addPrevious(cell* successor) {
     successor->prev = malloc(sizeof(cell));
     successor->prev->next = successor;
     successor->prev->prev = NULL;
     successor->prev->value = 0;
-    return successor->prev;
 }
 
 
-cell* addNext(cell* previous) {
+void addNext(cell* previous) {
     previous->next = malloc(sizeof(cell));
     previous->next->prev = previous;
     previous->next->next = NULL;
     previous->next->value = 0;
-    return previous->next;
-
 }
 
-// TODO: add functions for move left and move right
+cell* moveRight(cell* current) {
+    if (current->next == NULL) {
+        addNext(current);
+    }
+    return current->next;
+}
+
+cell* moveLeft(cell* current) {
+    if (current->prev == NULL) {
+        addPrevious(current);
+    }
+    return current->prev;
+}
+
+
+instruction** newStateTable(int numStates) {
+    // numStates should not include the halting state
+    return calloc(numStates, sizeof(instruction*));
+}
+
+instruction* newInstructionTable(int numSymbols) {
+    return calloc(numSymbols, sizeof(instruction));
+}
+
+void freeStateTable(instruction** stateTable, int numStates) {
+    for(int i = 0; i < numStates; i++) {
+        // this may be wrong
+        free((stateTable[i]));
+    }
+    free(stateTable);
+}
+
+
 
 
