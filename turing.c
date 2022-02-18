@@ -37,10 +37,10 @@ int main(int argc, char** argv) {
     TM cursor = {tape, 0};
     int numStates = 1;
 
-    //Setting up the program in a statetable
+    //Setting up the program instructions in a statetable
     instruction** stateTable;
 
-    //Leave only one of the lines below to decide which program to run, then compile with 'make'
+    //Uncomment one of the lines below to decide which program to run, then compile with 'make'
     //stateTable = bitFlipInstructions(&numStates);
     //stateTable = incrementInstructions(&numStates);
     stateTable = busyBeaverInstructions(&numStates);
@@ -49,7 +49,8 @@ int main(int argc, char** argv) {
     
     
 
-
+    //To run in verbose mode (print the state of the tape after every step)
+    //Change the final argument of simulate from 0 to 1
     simulate(cursor, stateTable, maxOps, 0);
     freeTape(tape);
     freeStateTable(stateTable, 2);
