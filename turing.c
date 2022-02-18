@@ -4,7 +4,7 @@ int main(int argc, char** argv) {
     // first arg is operation limit.
     // second arg is length of initial tape
     // 3rd-n args are the initial tape setup
-    // if there is only one arg, or the second arg is 0, the tape is setup to have 3 allocated cells containing 0;
+
     int maxOps = 10;
     uint8_t* setup;
     int length = 3;
@@ -35,18 +35,22 @@ int main(int argc, char** argv) {
     cell* tape = setupTape(length, setup);
     free(setup);
     TM cursor = {tape, 0};
+    int numStates = 1;
 
     //Setting up the program in a statetable
     instruction** stateTable;
-    //stateTable = bitFlipInstructions();
-    stateTable = incrementInstructions();
+
+    //Leave only one of the lines below to decide which program to run, then compile with 'make'
+    //stateTable = bitFlipInstructions(&numStates);
+    //stateTable = incrementInstructions(&numStates);
+    stateTable = busyBeaverInstructions(&numStates);
 
 
     
     
 
 
-    simulate(cursor, stateTable, maxOps);
+    simulate(cursor, stateTable, maxOps, 0);
     freeTape(tape);
     freeStateTable(stateTable, 2);
 
@@ -54,7 +58,7 @@ int main(int argc, char** argv) {
 }
 
 
-void simulate(TM cursor, instruction** stateTable, int opLimit) {
+void simulate(TM cursor, instruction** stateTable, int opLimit, int verbose) {
     int stepNum = 0;
     printf("Original Tape: ");
     showTape(cursor.current);
@@ -71,10 +75,14 @@ void simulate(TM cursor, instruction** stateTable, int opLimit) {
                 cursor.current = moveRight(cursor.current);
                 break;
             case (HALT):
-                stepNum = opLimit + 1;
+                stepNum = opLimit + 1; //HALTs execution by increasing the counter to a value past the maximum
                 break;
-            default:
+            default: //equivalent to: case (STAY)
                 break;
+        }
+        if (verbose) {
+            printf("               ");
+            showTape(cursor.current);
         }
         
         
@@ -188,6 +196,7 @@ void freeStateTable(instruction** stateTable, int numStates) {
 }
 
 void setInstruction(instruction* row, uint8_t write, direction d, int next) {
+    // codes the write data
     row->nextState = next;
     row->write = write;
     row->d = d;
@@ -196,25 +205,70 @@ void setInstruction(instruction* row, uint8_t write, direction d, int next) {
 
 
 // Programs
+/* NOTES:
+    - Implemented as a 2-dimensional array holding instruction structors.
+    - The instructions are set using a reference to the current instruction, what symbol to 
+    write, which direction to move before the next instruction, and what state to change to.
+    - I only use two symbols in the programs below but the possible symbols are stored
+    as 8 bit, unsigned integers so feel free to write programs with more symbols. The only
+    caveat is every symbol needs an instruction line in every possible state because instructions
+    are found by using the value encountered. If a particular symbol is impossible in a given state
+    feel free to leave that entry blank, but space must be allocated for it. Example: In a 4 symbol tape
+    every state must have space for 4 instructions.
 
-instruction** bitFlipInstructions() {
 
-    instruction** stateTable = newStateTable(2);
+
+*/
+
+
+instruction** busyBeaverInstructions(int* numStates) {
+    // Three state busy beaver
+    // symbols 0, 1
+    // input tape should be an empty and should produce a tape of 1 1 1 1 1 1
+
+    instruction** stateTable = newStateTable(3);
+    *numStates = 3;
+
+    stateTable[0] = newInstructionTable(2);
+    setInstruction(&(stateTable[0][0]), 1, RIGHT, 1);
+    setInstruction(&(stateTable[0][1]), 1, LEFT, 2);
+
+    stateTable[1] = newInstructionTable(2);
+    setInstruction(&(stateTable[1][0]), 1, LEFT, 0);
+    setInstruction(&(stateTable[1][1]), 1, RIGHT, 1);
+
+    stateTable[2] = newInstructionTable(2);
+    setInstruction(&(stateTable[2][0]), 1, LEFT, 1);
+    setInstruction(&(stateTable[2][1]), 1, HALT, 1);
+
+    return stateTable;
+
+}
+
+instruction** bitFlipInstructions(int* numStates) {
+    // Flips the value of all cells encountered
+    // symbols 0,1
+    // input any tape
+    // Never terminates
+    *numStates = 1;
+
+    instruction** stateTable = newStateTable(1);
 
     stateTable[0] = newInstructionTable(2);
     setInstruction(&(stateTable[0][0]), 1, RIGHT, 0);
     setInstruction(&(stateTable[0][1]), 0, RIGHT, 0);
-
-    stateTable[1] = newInstructionTable(2);
-    setInstruction(&(stateTable[1][0]), 0, HALT, 1);
-    setInstruction(&(stateTable[1][1]), 1, HALT, 1);
 
     return stateTable;
 
 }
 
 
-instruction** incrementInstructions() {
+instruction** incrementInstructions(int* numStates) {
+    // changes the first encountered 0 to 1 then halts
+    // symbols 0,1
+    // input any tape
+    *numStates = 1;
+
 
     instruction** stateTable = newStateTable(1);
 
@@ -226,4 +280,3 @@ instruction** incrementInstructions() {
 
 }
 
-// TODO: busy beaver

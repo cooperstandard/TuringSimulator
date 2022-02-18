@@ -51,7 +51,7 @@ typedef struct _TM{
 // allowing to fill the tape with data before running because any finite start state could be setup by a sequence of chaining rules that terminate at the initial position
 cell* setupTape(int length, uint8_t* setup);
 
-void simulate(TM cursor, instruction** stateTable, int opLimit);
+void simulate(TM cursor, instruction** stateTable, int opLimit, int verbose);
 
 // allocates memory and sets value to 0 and appropiate relationship to parameter cell.
 void addPrevious(cell* successor);
@@ -78,9 +78,11 @@ void setInstruction(instruction* row, uint8_t write, direction d, int next);
 
 
 // Programs (see implementation for details)
-instruction** bitFlipInstructions();
+instruction** bitFlipInstructions(int* numStates);
 
-instruction** incrementInstructions();
+instruction** incrementInstructions(int* numStates);
+
+instruction** busyBeaverInstructions(int* numStates);
 
 
 
